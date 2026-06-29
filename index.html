@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>安全签名</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="panel">
+        <div class="brand">
+          <div>
+            <h1>安全签名</h1>
+          </div>
+        </div>
+
+        <section class="control-block">
+          <div class="block-title">
+            <span>文件</span>
+            <small>图片或 PDF</small>
+          </div>
+          <label class="file-drop" for="documentInput">
+            <input id="documentInput" type="file" accept="image/*,application/pdf,.pdf" />
+            <span class="file-icon">+</span>
+            <span>
+              <strong>上传合同或表单</strong>
+              <small>支持 PNG、JPG、WebP、PDF</small>
+            </span>
+          </label>
+        </section>
+
+        <section class="control-block">
+          <div class="block-title">
+            <span>笔迹</span>
+            <small>即时生效</small>
+          </div>
+          <div class="field-grid">
+            <label>
+              <span>颜色</span>
+              <input id="inkColor" type="color" value="#101820" />
+            </label>
+            <label>
+              <span>粗细</span>
+              <input id="inkSize" type="range" min="1" max="12" value="4" />
+            </label>
+          </div>
+          <div class="swatches" aria-label="常用颜色">
+            <button class="swatch active" data-color="#101820" style="--swatch: #101820" aria-label="黑色"></button>
+            <button class="swatch" data-color="#0f5c66" style="--swatch: #0f5c66" aria-label="墨绿色"></button>
+            <button class="swatch" data-color="#8a1c1c" style="--swatch: #8a1c1c" aria-label="深红色"></button>
+            <button class="swatch" data-color="#224f9c" style="--swatch: #224f9c" aria-label="蓝色"></button>
+            <button class="swatch" data-color="#f8f6ef" style="--swatch: #f8f6ef" aria-label="浅白色"></button>
+          </div>
+        </section>
+
+        <section class="control-block actions">
+          <div class="block-title">
+            <span>签名调整工具</span>
+          </div>
+          <button id="undoBtn" class="icon-btn" title="撤销" aria-label="撤销">↶</button>
+          <button id="redoBtn" class="icon-btn" title="重做" aria-label="重做">↷</button>
+          <button id="clearBtn" class="text-btn">清空</button>
+          <button id="downloadSignatureBtn" class="text-btn">导出签名</button>
+          <label class="text-btn import-btn" for="signatureImportInput">导入签名</label>
+          <input id="signatureImportInput" class="hidden-input" type="file" accept="image/*" />
+        </section>
+
+        <section class="export-actions">
+          <button id="downloadDocumentBtn" class="primary-btn">导出签署稿</button>
+        </section>
+      </aside>
+
+      <section class="workspace" aria-label="签署工作区">
+        <div class="topbar">
+          <div>
+            <p>当前文件</p>
+            <strong id="documentName">空白签署页</strong>
+          </div>
+          <div class="topbar-tools">
+            <div class="page-controls hidden" id="pageControls" aria-label="PDF 页码">
+              <button id="prevPageBtn" class="mini-btn" aria-label="上一页">‹</button>
+              <span id="pageIndicator">1 / 1</span>
+              <button id="nextPageBtn" class="mini-btn" aria-label="下一页">›</button>
+            </div>
+            <div class="status-pill" id="strokeStatus">未签字</div>
+          </div>
+        </div>
+
+        <div class="document-stage">
+          <canvas id="documentCanvas" class="document-canvas" aria-label="文档预览"></canvas>
+          <canvas id="signatureCanvas" class="signature-canvas" aria-label="签名画布"></canvas>
+          <button id="signatureMoveHandle" class="signature-move hidden" type="button" aria-label="移动签名" title="移动签名">移动</button>
+        </div>
+
+        <div class="workspace-footer">
+          <div class="hint">支持鼠标、触控板和手机手写。按住签名左侧的移动标识可调整位置。</div>
+          <button id="fitBtn" class="quiet-btn">重置画布</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
