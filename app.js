@@ -865,7 +865,7 @@ async function loadPdfDocument(file) {
   resetDocumentState("pdf");
   const bytes = await file.arrayBuffer();
   state.pdfBytes = bytes;
-  state.pdfDoc = await pdfjsLib.getDocument({ data: bytes.slice(0) }).promise;
+  state.pdfDoc = await pdfjsLib.getDocument({ data: bytes.slice(0), isEvalSupported: false }).promise;
   state.pdfPageCount = state.pdfDoc.numPages;
   state.documentFileName = `${file.name.replace(/\.[^.]+$/, "")}-signed.pdf`;
   documentName.textContent = file.name;
