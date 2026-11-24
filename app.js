@@ -58,8 +58,7 @@ const state = {
   signatureBoxDrag: null,
 };
 
-function canvasPoint(event) {
-  const rect = signatureCanvas.getBoundingClientRect();
+function canvasPoint(event, rect = signatureCanvas.getBoundingClientRect()) {
   const point = event.touches ? event.touches[0] : event;
   return {
     x: (point.clientX - rect.left) / rect.width,
@@ -103,65 +102,7 @@ function canvasCssSize(canvas) {
   };
 }
 
-function templateFromStrokes(strokes, sourceAspect = 1, sourceHeight = 1) {
-  const bounds = signatureBounds(strokes);
-  if (!bounds) return null;
-
-  const width = Math.max(0.001, bounds.maxX - bounds.minX);
-  const height = Math.max(0.001, bounds.maxY - bounds.minY);
-  return {
-    version: 1,
-    createdAt: new Date().toISOString(),
-    aspect: (width * sourceAspect) / height,
-    strokes: strokes.map((stroke) => ({
-      color: stroke.color,
-      size: stroke.size / sourceHeight,
-      points: stroke.points.map((point) => ({
-        x: (point.x - bounds.minX) / width,
-        y: (point.y - bounds.minY) / height,
-      })),
-    })),
-  };
-}
-
-function placeSignatureTemplate(template) {
-  if (!template) return;
-
-  const box = state.signatureBox;
-  const stageSize = canvasCssSize(signatureCanvas);
-  const stageAspect = stageSize.width / stageSize.height;
-  const padX = box.width * 0.1;
-  const padY = box.height * 0.22;
-  const maxWidth = Math.max(0.01, box.width - padX * 2);
-  const maxHeight = Math.max(0.01, box.height - padY * 2);
-  const containerAspect = (maxWidth * stageAspect) / maxHeight;
-  const signatureAspect = Math.max(0.1, template.aspect || 2.8);
-  let drawWidth = maxWidth;
-  let drawHeight = maxHeight;
-
-  if (signatureAspect > containerAspect) {
-    drawHeight = (drawWidth * stageAspect) / signatureAspect;
-  } else {
-    drawWidth = (drawHeight * signatureAspect) / stageAspect;
-  }
-
-  const startX = box.x + (box.width - drawWidth) / 2;
-  const startY = box.y + (box.height - drawHeight) / 2;
-  state.signatureImage = null;
-  state.strokes = template.strokes.map((stroke) => ({
-    color: stroke.color,
-    size: Math.max(1, stroke.size * stageSize.height * drawHeight),
-    points: stroke.points.map((point) => ({
-      x: startX + point.x * drawWidth,
-      y: startY + point.y * drawHeight,
-    })),
-  }));
-  state.redo = [];
-  saveCurrentPageInk();
-  redrawSignature();
-}
-
-function placeSignatureImage(image, dataUrl) {
+function placeSignatureImage(image) {
   const box = state.signatureBox;
   const stageSize = canvasCssSize(signatureCanvas);
   const stageAspect = stageSize.width / stageSize.height;
@@ -184,12 +125,10 @@ function placeSignatureImage(image, dataUrl) {
   state.redo = [];
   state.signatureImage = {
     image,
-    dataUrl,
     x: box.x + (box.width - drawWidth) / 2,
     y: box.y + (box.height - drawHeight) / 2,
     width: drawWidth,
     height: drawHeight,
-    aspect: imageAspect,
   };
   saveCurrentPageInk();
   redrawSignature();
@@ -200,7 +139,7 @@ function importSignatureImage(file) {
   const reader = new FileReader();
   reader.onload = () => {
     const image = new Image();
-    image.onload = () => placeSignatureImage(image, reader.result);
+    image.onload = () => placeSignatureImage(image);
     image.src = reader.result;
   };
   reader.readAsDataURL(file);
@@ -283,17 +222,22 @@ async function renderPdfPage() {
     state.renderTask.cancel();
   }
 
-  state.renderTask = page.render({ canvasContext: renderCtx, viewport });
+  const renderTask = page.render({ canvasContext: renderCtx, viewport });
+  state.renderTask = renderTask;
 
   try {
-    await state.renderTask.promise;
+    await renderTask.promise;
     docCtx.drawImage(renderCanvas, x, y, drawWidth, drawHeight);
   } catch (error) {
     if (error?.name !== "RenderingCancelledException") {
       console.error(error);
     }
   } finally {
-    state.renderTask = null;
+    if (state.renderTask === renderTask) {
+      state.renderTask = null;
+    }
+    renderCanvas.width = 0;
+    renderCanvas.height = 0;
   }
 }
 
@@ -373,11 +317,15 @@ function redrawSignature() {
 
 function anyPdfPageHasInk() {
   if (state.mode !== "pdf") return false;
-  saveCurrentPageInk();
-  return (
-    [...state.pdfSignatures.values()].some((strokes) => strokes.length > 0) ||
-    [...state.pdfSignatureImages.values()].some(Boolean)
-  );
+  if (state.strokes.length > 0 || Boolean(state.signatureImage)) return true;
+  const currentKey = currentPageKey();
+  for (const [key, strokes] of state.pdfSignatures.entries()) {
+    if (key !== currentKey && strokes.length > 0) return true;
+  }
+  for (const [key, image] of state.pdfSignatureImages.entries()) {
+    if (key !== currentKey && Boolean(image)) return true;
+  }
+  return false;
 }
 
 function updateButtons() {
@@ -515,9 +463,9 @@ function moveStroke(event) {
   }
   event.preventDefault();
 
-  const point = stabilizePoint(state.lastPoint, canvasPoint(event), 0.42);
-  if (distanceBetween(state.lastPoint, point) < 0.002) return;
   const rect = signatureCanvas.getBoundingClientRect();
+  const point = stabilizePoint(state.lastPoint, canvasPoint(event, rect), 0.42);
+  if (distanceBetween(state.lastPoint, point) < 0.002) return;
   const segment = [
     {
       x: state.lastPoint.x * rect.width,
@@ -604,23 +552,32 @@ function downloadCanvas(canvas, filename) {
 
 function signatureBounds(strokes = state.strokes, signatureImage = null) {
   if (!strokes.length && !signatureImage) return null;
-  const xs = [];
-  const ys = [];
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
   for (const stroke of strokes) {
     for (const point of stroke.points) {
-      xs.push(point.x);
-      ys.push(point.y);
+      if (point.x < minX) minX = point.x;
+      if (point.y < minY) minY = point.y;
+      if (point.x > maxX) maxX = point.x;
+      if (point.y > maxY) maxY = point.y;
     }
   }
   if (signatureImage) {
-    xs.push(signatureImage.x, signatureImage.x + signatureImage.width);
-    ys.push(signatureImage.y, signatureImage.y + signatureImage.height);
+    const right = signatureImage.x + signatureImage.width;
+    const bottom = signatureImage.y + signatureImage.height;
+    if (signatureImage.x < minX) minX = signatureImage.x;
+    if (signatureImage.y < minY) minY = signatureImage.y;
+    if (right > maxX) maxX = right;
+    if (bottom > maxY) maxY = bottom;
   }
+  if (!Number.isFinite(minX)) return null;
   return {
-    minX: Math.max(0, Math.min(...xs) - 0.03),
-    minY: Math.max(0, Math.min(...ys) - 0.03),
-    maxX: Math.min(1, Math.max(...xs) + 0.03),
-    maxY: Math.min(1, Math.max(...ys) + 0.03),
+    minX: Math.max(0, minX - 0.03),
+    minY: Math.max(0, minY - 0.03),
+    maxX: Math.min(1, maxX + 0.03),
+    maxY: Math.min(1, maxY + 0.03),
   };
 }
 
@@ -808,6 +765,9 @@ function resetDocumentState(mode) {
     state.renderTask.cancel();
     state.renderTask = null;
   }
+  if (typeof state.pdfDoc?.destroy === "function") {
+    Promise.resolve(state.pdfDoc.destroy()).catch(() => {});
+  }
   state.mode = mode;
   state.strokes = [];
   state.redo = [];
@@ -896,7 +856,9 @@ async function goToPdfPage(nextPage) {
 
 function syncSwatches() {
   document.querySelectorAll(".swatch").forEach((button) => {
-    button.classList.toggle("active", button.dataset.color === inkColor.value);
+    const isActive = button.dataset.color === inkColor.value;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
   });
 }
 

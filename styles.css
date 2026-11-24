@@ -1,14 +1,12 @@
 :root {
   color-scheme: light;
   --paper: #faf9f5;
-  --panel: #fcfbf7;
   --ink: #101820;
   --muted: #736f66;
   --line: #ded7ca;
   --accent: #0f5c66;
   --accent-strong: #0a4249;
   --gold: #c08b3e;
-  --danger: #a63a2b;
   --shadow: 0 22px 80px rgba(37, 31, 21, 0.16);
   --radius: 8px;
 }
@@ -75,7 +73,6 @@ button,
   padding-bottom: 8px;
 }
 
-.eyebrow,
 .topbar p {
   margin: 0;
   color: var(--muted);

@@ -48,11 +48,11 @@
             </label>
           </div>
           <div class="swatches" aria-label="常用颜色">
-            <button class="swatch active" data-color="#101820" style="--swatch: #101820" aria-label="黑色"></button>
-            <button class="swatch" data-color="#0f5c66" style="--swatch: #0f5c66" aria-label="墨绿色"></button>
-            <button class="swatch" data-color="#8a1c1c" style="--swatch: #8a1c1c" aria-label="深红色"></button>
-            <button class="swatch" data-color="#224f9c" style="--swatch: #224f9c" aria-label="蓝色"></button>
-            <button class="swatch" data-color="#f8f6ef" style="--swatch: #f8f6ef" aria-label="浅白色"></button>
+            <button type="button" class="swatch active" data-color="#101820" style="--swatch: #101820" aria-label="黑色" aria-pressed="true"></button>
+            <button type="button" class="swatch" data-color="#0f5c66" style="--swatch: #0f5c66" aria-label="墨绿色" aria-pressed="false"></button>
+            <button type="button" class="swatch" data-color="#8a1c1c" style="--swatch: #8a1c1c" aria-label="深红色" aria-pressed="false"></button>
+            <button type="button" class="swatch" data-color="#224f9c" style="--swatch: #224f9c" aria-label="蓝色" aria-pressed="false"></button>
+            <button type="button" class="swatch" data-color="#f8f6ef" style="--swatch: #f8f6ef" aria-label="浅白色" aria-pressed="false"></button>
           </div>
         </section>
 
@@ -60,16 +60,16 @@
           <div class="block-title">
             <span>签名调整工具</span>
           </div>
-          <button id="undoBtn" class="icon-btn" title="撤销" aria-label="撤销">↶</button>
-          <button id="redoBtn" class="icon-btn" title="重做" aria-label="重做">↷</button>
-          <button id="clearBtn" class="text-btn">清空</button>
-          <button id="downloadSignatureBtn" class="text-btn">导出签名</button>
+          <button id="undoBtn" type="button" class="icon-btn" title="撤销" aria-label="撤销">↶</button>
+          <button id="redoBtn" type="button" class="icon-btn" title="重做" aria-label="重做">↷</button>
+          <button id="clearBtn" type="button" class="text-btn">清空</button>
+          <button id="downloadSignatureBtn" type="button" class="text-btn">导出签名</button>
           <label class="text-btn import-btn" for="signatureImportInput">导入签名</label>
           <input id="signatureImportInput" class="hidden-input" type="file" accept="image/*" />
         </section>
 
         <section class="export-actions">
-          <button id="downloadDocumentBtn" class="primary-btn">导出签署稿</button>
+          <button id="downloadDocumentBtn" type="button" class="primary-btn">导出签署稿</button>
         </section>
       </aside>
 
@@ -81,11 +81,11 @@
           </div>
           <div class="topbar-tools">
             <div class="page-controls hidden" id="pageControls" aria-label="PDF 页码">
-              <button id="prevPageBtn" class="mini-btn" aria-label="上一页">‹</button>
+              <button id="prevPageBtn" type="button" class="mini-btn" aria-label="上一页">‹</button>
               <span id="pageIndicator">1 / 1</span>
-              <button id="nextPageBtn" class="mini-btn" aria-label="下一页">›</button>
+              <button id="nextPageBtn" type="button" class="mini-btn" aria-label="下一页">›</button>
             </div>
-            <div class="status-pill" id="strokeStatus">未签字</div>
+            <div class="status-pill" id="strokeStatus" aria-live="polite">未签字</div>
           </div>
         </div>
 
@@ -97,7 +97,7 @@
 
         <div class="workspace-footer">
           <div class="hint">支持鼠标、触控板和手机手写。按住签名左侧的移动标识可调整位置。</div>
-          <button id="fitBtn" class="quiet-btn">重置画布</button>
+          <button id="fitBtn" type="button" class="quiet-btn">重置画布</button>
         </div>
       </section>
     </main>
