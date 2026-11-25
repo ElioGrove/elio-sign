@@ -22,12 +22,12 @@
             <span>文件</span>
             <small>图片或 PDF</small>
           </div>
-          <label class="file-drop" for="documentInput">
+          <label class="file-drop" id="documentDropZone" for="documentInput">
             <input id="documentInput" type="file" accept="image/*,application/pdf,.pdf" />
-            <span class="file-icon">+</span>
+            <span class="file-icon" aria-hidden="true">+</span>
             <span>
               <strong>上传合同或表单</strong>
-              <small>支持 PNG、JPG、WebP、PDF</small>
+              <small>点击或拖拽 · 支持 PNG、JPG、WebP、PDF</small>
             </span>
           </label>
         </section>
@@ -60,12 +60,14 @@
           <div class="block-title">
             <span>签名调整工具</span>
           </div>
-          <button id="undoBtn" type="button" class="icon-btn" title="撤销" aria-label="撤销">↶</button>
-          <button id="redoBtn" type="button" class="icon-btn" title="重做" aria-label="重做">↷</button>
+          <button id="undoBtn" type="button" class="icon-btn" title="撤销 (Ctrl/⌘+Z)" aria-label="撤销">↶</button>
+          <button id="redoBtn" type="button" class="icon-btn" title="重做 (Ctrl/⌘+Shift+Z)" aria-label="重做">↷</button>
           <button id="clearBtn" type="button" class="text-btn">清空</button>
           <button id="downloadSignatureBtn" type="button" class="text-btn">导出签名</button>
-          <label class="text-btn import-btn" for="signatureImportInput">导入签名</label>
-          <input id="signatureImportInput" class="hidden-input" type="file" accept="image/*" />
+          <label class="text-btn import-btn" id="signatureImportZone" for="signatureImportInput">
+            <input id="signatureImportInput" class="hidden-input" type="file" accept="image/*" />
+            <span>导入签名</span>
+          </label>
         </section>
 
         <section class="export-actions">
@@ -89,6 +91,8 @@
           </div>
         </div>
 
+        <div id="appNotice" class="app-notice hidden" role="alert" aria-live="assertive"></div>
+
         <div class="document-stage">
           <canvas id="documentCanvas" class="document-canvas" aria-label="文档预览"></canvas>
           <canvas id="signatureCanvas" class="signature-canvas" aria-label="签名画布"></canvas>
@@ -102,8 +106,8 @@
       </section>
     </main>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="./app.js"></script>
   </body>
 </html>
